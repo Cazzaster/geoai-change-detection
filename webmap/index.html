@@ -1,1 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GeoAI Change Detection - Interactive Web Map</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <style>
+        body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
+        #map { height: 100vh; width: 100%; }
+        .header {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255,255,255,0.9);
+            padding: 8px 16px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            font-size: 16px;
+            font-weight: bold;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        GeoAI Change Detection Demo<br>
+        <small>Sentinel-2 COG loaded directly in browser (Cloud Optimized GeoTIFF)</small>
+    </div>
 
+    <div id="map"></div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- georaster & georaster-layer-for-leaflet -->
+    <script src="https://unpkg.com/georaster@1.5.0/dist/georaster.browser.min.js"></script>
+    <script src="https://unpkg.com/georaster-layer-for-leaflet@0.0.4/dist/georaster-layer-for-leaflet.min.js"></script>
+
+    <script>
+        // Initialize map
+        const map = L.map('map').setView([40.0, -100.0], 4);  // Global view to start
+
+        // OpenStreetMap basemap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors',
+            maxZoom: 19
+        }).addTo(map);
+
+        // Example public Sentinel-2 COG URL (True Color - Visual)
+        // This is a real COG from AWS Sentinel-2 public bucket
+        const cogUrl = "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/14/R/MP/2023/7/S2A_14RMP_20230701_0_L2A/TCI.tif";
+
+        // Load the COG as a GeoRasterLayer
+        fetch(cogUrl)
+            .then(response => response.arrayBuffer())
+            .then(arrayBuffer => parseGeoraster(arrayBuffer))
+            .then(georaster => {
+                const geoRasterLayer = new GeoRasterLayer({
+                    georaster: georaster,
+                    pixelValuesToColorFn: values => {
+                        // Simple RGB rendering for TCI (True Color Image)
+                        return `rgb(${values[0]}, ${values[1]}, ${values[2]})`;
+                    },
+                    resolution: 256,           // Adjust for performance
+                    opacity: 0.85
+                });
+
+                geoRasterLayer.addTo(map);
+                
+                // Zoom to the layer bounds once loaded
+                map.fitBounds(geoRasterLayer.getBounds());
+                
+                console.log("✅ Sentinel-2 COG loaded successfully!");
+            })
+            .catch(error => {
+                console.error("Error loading COG:", error);
+                alert("Failed to load COG. Check console for details.");
+            });
+
+        // Optional: Add layer control later when you have multiple layers
+    </script>
+</body>
+</html>
