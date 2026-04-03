@@ -6,4 +6,4 @@ geopandas>=0.14.0
 numpy>=1.24.0
 scikit-learn>=1.3.0
 matplotlib>=3.7.0
-leafmap>=0.30.0   # Optional: nice interactive maps inside Colab
+leafmap>=0.30.0
