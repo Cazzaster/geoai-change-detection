@@ -23,20 +23,50 @@ This project demonstrates an end-to-end GeoAI workflow:
 - **Data**: Open Sentinel-2 L2A via public STAC catalogs
 - **Environment**: Google Colab (recommended) or Binder
 
-## 📁 Project Structure
-geoai-change-detection/
-
+## 📁 Project Structuregeoai-change-detection/
 ├── notebooks/              # Jupyter notebooks (Colab-ready)
-
 │   └── change_detection.ipynb
-
 ├── webmap/                 # Static web map files
-
 │   ├── index.html
-
 │   └── assets/
-
 ├── README.md
+├── requirements.txt
+└── .gitignore (optional)
 
-└── requirements.txt
+
+## 📊 How It Works
+
+1. **Data Access** — Search and filter Sentinel-2 scenes using STAC.
+2. **Processing** — Compute spectral indices and detect changes between dates.
+3. **Output** — Generate GeoJSON of changed areas + ready-to-use COG URLs.
+4. **Visualization** — Load selected COGs directly into an interactive Leaflet map (partial loading via HTTP range requests).
+
+## 🖥️ Live Demo
+
+→ **[View Interactive Web Map](https://cazaster.github.io/geoai-change-detection/webmap/)**
+
+## 📓 Run the Notebook
+
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/cazaster/geoai-change-detection/blob/main/notebooks/change_detection.ipynb)
+
+*(The notebook link will work once you create the `notebooks/change_detection.ipynb` file)*
+
+## Getting Started
+
+1. Clone the repo or open directly in Google Colab
+2. Install dependencies: `pip install -r requirements.txt`
+3. Run the notebook to query STAC and generate change maps
+4. View the interactive web map via GitHub Pages
+
+## Future Enhancements
+
+- Deep learning models for semantic segmentation
+- Multi-temporal analysis and before/after sliders
+- Automated report generation
+
+---
+
+**Built as a professional portfolio project to showcase scalable GeoAI workflows using open data and cloud-optimized tools.**
+
+Made with ❤️ for geospatial innovation.
 
