@@ -1,0 +1,43 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "change_type": "Vegetation Loss",
+        "ndvi_diff": -0.35
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-99.8, 35.2],
+            [-99.7, 35.2],
+            [-99.7, 35.3],
+            [-99.8, 35.3],
+            [-99.8, 35.2]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "change_type": "Vegetation Gain",
+        "ndvi_diff": 0.28
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [-99.6, 35.25],
+            [-99.5, 35.25],
+            [-99.5, 35.35],
+            [-99.6, 35.35],
+            [-99.6, 35.25]
+          ]
+        ]
+      }
+    }
+  ]
+}
