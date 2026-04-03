@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GeoAI Change Detection - Interactive Web Map</title>
+    <title>GeoAI Change Detection • Interactive Map</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    
     <style>
         body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
         #map { height: 100vh; width: 100%; }
@@ -16,34 +15,38 @@
             left: 50%;
             transform: translateX(-50%);
             background: rgba(255,255,255,0.95);
-            padding: 10px 20px;
+            padding: 12px 20px;
             border-radius: 8px;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.25);
             z-index: 1000;
-            font-size: 15px;
+            font-size: 16px;
             font-weight: bold;
             text-align: center;
-            max-width: 90%;
+        }
+        .legend {
+            background: white;
+            padding: 10px;
+            border-radius: 6px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            font-size: 13px;
         }
     </style>
 </head>
 <body>
     <div class="header">
         GeoAI Change Detection Demo<br>
-        <small>Loading Sentinel-2 COG directly in browser (Cloud Optimized GeoTIFF)</small>
+        <small>Sentinel-2 COG + NDVI Change Polygons</small>
     </div>
 
     <div id="map"></div>
 
-    <!-- Leaflet -->
+    <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    
-    <!-- georaster libraries -->
     <script src="https://unpkg.com/georaster@1.5.0/dist/georaster.browser.min.js"></script>
     <script src="https://unpkg.com/georaster-layer-for-leaflet@0.0.4/dist/georaster-layer-for-leaflet.min.js"></script>
 
     <script>
-        const map = L.map('map').setView([35.0, -100.0], 5);   // Reasonable starting view
+        const map = L.map('map').setView([35.25, -99.65], 12);
 
         // Basemap
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -51,36 +54,68 @@
             maxZoom: 19
         }).addTo(map);
 
-        // === UPDATED PUBLIC COG URL (more reliable for browser) ===
+        // === Public Sentinel-2 COG (True Color) ===
         const cogUrl = "https://huggingface.co/datasets/giswqs/geospatial/resolve/main/las_vegas_train_naip.tif";
 
-        console.log("Attempting to load COG from:", cogUrl);
-
         fetch(cogUrl)
-            .then(response => {
-                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-                return response.arrayBuffer();
-            })
-            .then(arrayBuffer => parseGeoraster(arrayBuffer))
+            .then(r => r.arrayBuffer())
+            .then(ab => parseGeoraster(ab))
             .then(georaster => {
-                console.log("✅ COG parsed successfully!", georaster);
-
-                const layer = new GeoRasterLayer({
+                const rasterLayer = new GeoRasterLayer({
                     georaster: georaster,
-                    pixelValuesToColorFn: values => `rgb(${values[0]}, ${values[1]}, ${values[2]})`,  // RGB for NAIP true color
+                    pixelValuesToColorFn: v => `rgb(${v[0]}, ${v[1]}, ${v[2]})`,
                     resolution: 256,
-                    opacity: 0.9
+                    opacity: 0.85
                 });
-
-                layer.addTo(map);
-                map.fitBounds(layer.getBounds());   // Zoom to the image
-
-                console.log("✅ Layer added to map!");
+                rasterLayer.addTo(map);
+                console.log("✅ Sentinel-2 COG loaded");
             })
-            .catch(error => {
-                console.error("❌ Failed to load COG:", error);
-                alert("Failed to load COG.\n\nError: " + error.message + "\n\nCheck the browser console (F12) for more details.");
-            });
+            .catch(err => console.error("COG load error:", err));
+
+        // === Load Change Polygons ===
+        fetch('change_polygons.geojson')
+            .then(r => r.json())
+            .then(data => {
+                const changeLayer = L.geoJSON(data, {
+                    style: feature => {
+                        const diff = feature.properties.ndvi_diff;
+                        return {
+                            color: diff < 0 ? '#d73027' : '#1a9850',
+                            weight: 2,
+                            opacity: 0.9,
+                            fillOpacity: 0.4
+                        };
+                    },
+                    onEachFeature: (feature, layer) => {
+                        layer.bindPopup(`
+                            <b>${feature.properties.change_type}</b><br>
+                            NDVI Diff: ${feature.properties.ndvi_diff.toFixed(2)}
+                        `);
+                    }
+                });
+                changeLayer.addTo(map);
+
+                // Add layer control
+                L.control.layers({}, {
+                    "Change Polygons": changeLayer
+                }).addTo(map);
+
+                console.log("✅ Change polygons loaded");
+            })
+            .catch(err => console.error("GeoJSON load error:", err));
+
+        // Legend
+        const legend = L.control({position: 'bottomright'});
+        legend.onAdd = function() {
+            const div = L.DomUtil.create('div', 'legend');
+            div.innerHTML = `
+                <b>NDVI Change</b><br>
+                <span style="color:#d73027">■</span> Vegetation Loss<br>
+                <span style="color:#1a9850">■</span> Vegetation Gain
+            `;
+            return div;
+        };
+        legend.addTo(map);
     </script>
 </body>
 </html>
