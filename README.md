@@ -43,7 +43,7 @@ This project demonstrates an end-to-end GeoAI workflow:
 
 ## 🖥️ Live Demo
 
-→ **[View Interactive Web Map](https://cazaster.github.io/geoai-change-detection/webmap/)**
+→ **[View Interactive Web Map](https://cazaster.github.io/geoai-change-detection/)**
 
 ## 📓 Run the Notebook
 
